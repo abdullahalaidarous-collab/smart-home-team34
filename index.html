@@ -70,6 +70,7 @@ body::before {
 }
 .btn-login:hover { opacity:.9; transform:translateY(-1px); }
 .login-hint { margin-top:20px; font-size:12px; color:var(--muted); }
+.login-error { color:var(--red); font-size:12px; margin-top:10px; min-height:16px; }
 
 /* SIDEBAR */
 #sidebar {
@@ -150,7 +151,7 @@ nav { padding:16px 12px; flex:1; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
 /* STATS */
-.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
 .stat {
   background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 20px;
   position:relative; overflow:hidden; transition:transform .2s;
@@ -175,7 +176,7 @@ nav { padding:16px 12px; flex:1; }
   background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:16px;
   cursor:pointer; transition:all .25s; position:relative; overflow:hidden;
 }
-.dev-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+.dev-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
 .dev-card.on { border-color:rgba(56,189,248,.35); background:linear-gradient(135deg,var(--card2),rgba(56,189,248,.07)); }
 .dev-card.on::after {
   content:''; position:absolute; inset:0;
@@ -191,13 +192,9 @@ nav { padding:16px 12px; flex:1; }
   background:#cbd5e1; border:1px solid rgba(0,0,0,0.1);
   position:relative; cursor:pointer; transition:all .3s; flex-shrink:0;
 }
-.tog.on { background:linear-gradient(90deg,var(--accent),var(--accent2)); border-color:transparent; box-shadow:0 0 10px rgba(56,189,248,.4); }
+.tog.on { background:linear-gradient(90deg,var(--accent),var(--accent2)); border-color:transparent; box-shadow:0 0 10px rgba(56,189,248,.25); }
 .tog-thumb { position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:white; transition:left .3s; box-shadow:0 1px 3px rgba(0,0,0,.3); }
 .tog.on .tog-thumb { left:calc(100% - 16px); }
-.dev-slider { margin-top:10px; }
-.slider-row { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:5px; }
-input[type=range] { width:100%; -webkit-appearance:none; height:3px; border-radius:3px; background:#cbd5e1; outline:none; cursor:pointer; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 6px rgba(56,189,248,.5); }
 
 /* SENSORS */
 .sensors-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
@@ -226,7 +223,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
 /* LOGS */
 .log-table { width:100%; border-collapse:collapse; font-size:12px; }
 .log-table th { text-align:left; padding:10px 14px; color:var(--muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--border); }
-.log-table td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.04); }
+.log-table td { padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.05); }
 .log-table tr:hover td { background:rgba(0,0,0,.02); }
 .log-type { display:inline-block; border-radius:6px; padding:2px 8px; font-size:10px; font-weight:600; }
 .log-type.control { background:rgba(56,189,248,.12);  color:var(--accent); }
@@ -279,15 +276,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
     <h2>Smart Home System</h2>
     <p>King Abdulaziz University — Team 34 · EE499</p>
     <div class="input-group">
-      <label>Username</label>
-      <input type="text" id="loginUser" value="admin" placeholder="admin">
-    </div>
-    <div class="input-group">
       <label>Password</label>
-      <input type="password" id="loginPass" value="1234" placeholder="••••">
+      <input type="password" id="loginPass" placeholder="Enter password">
     </div>
     <button class="btn-login" onclick="doLogin()">Sign In →</button>
-    <div class="login-hint">Demo credentials: admin / 1234</div>
+    <div class="login-hint">Access password: 1234</div>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
@@ -335,8 +329,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
       <div class="page-sub">Cloud-Centric Architecture · MQTT over TLS · ESP32</div>
     </div>
     <div class="topbar-right">
-      <div class="chip">🌡️ <span id="tempChip">22.0°C Indoor</span></div>
-      <div class="chip">⚡ 4.2 kWh</div>
       <div class="alert-bell" onclick="goPage('alerts',null)">🔔<div class="notif"></div></div>
     </div>
   </div>
@@ -352,12 +344,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
           <div class="stat-val" id="activeDevCount">5</div>
           <div class="stat-unit">of 3 devices</div>
         </div>
-        <div class="stat" style="--c:var(--accent)">
-          <div class="stat-icon">🌡️</div>
-          <div class="stat-label">Temperature</div>
-          <div class="stat-val">22°</div>
-          <div class="stat-unit">Indoor</div>
-        </div>
         <div class="stat" style="--c:var(--yellow)">
           <div class="stat-icon">🔥</div>
           <div class="stat-label">Smoke Sensor</div>
@@ -371,6 +357,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
           <div class="stat-unit">Need review</div>
         </div>
       </div>
+
       <div class="grid-2">
         <div>
           <div class="sec-header">
@@ -387,6 +374,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
           <div class="sensors-grid" id="overviewSensors"></div>
         </div>
       </div>
+
       <div class="mt16">
         <div class="sec-header">
           <div class="sec-title">🚨 Recent Alerts</div>
@@ -516,9 +504,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; h
 
 <script>
 const devices = [
-  { id:0, name:'Main Lights', emoji:'💡', on:true,  hasSlider:true,  sliderLabel:'Brightness', sliderVal:75, status:'75%',    pin:'GPIO2', istemp:false },
-  { id:1, name:'Fan',         emoji:'🌀', on:true,  hasSlider:true,  sliderLabel:'Speed',      sliderVal:60, status:'60%',    pin:'GPIO4', istemp:false },
-  { id:2, name:'Door Lock',   emoji:'🔐', on:true,  hasSlider:false, sliderLabel:'',           sliderVal:0,  status:'Locked', pin:'GPIO5', istemp:false },
+  { id:0, name:'Main Lights', emoji:'💡', on:true,  status:'ON',     room:'Abdullah Room' },
+  { id:1, name:'Fan',         emoji:'🌀', on:true,  status:'ON',     room:'Abdullah Room' },
+  { id:2, name:'Door Lock',   emoji:'🔐', on:true,  status:'Locked', room:'Abdullah Room' },
 ];
 
 const sensors = [
@@ -542,31 +530,44 @@ const schedules = [
 ];
 
 const logs = [
-  { time:'10:42:15', type:'control', device:'Main Lights',     action:'Turned on (brightness 75%)',  user:'admin'    },
-  { time:'10:38:02', type:'sensor',  device:'Motion Sensor',   action:'Motion detected',             user:'System'   },
-  { time:'10:35:44', type:'alert',   device:'Main Door',       action:'Unauthorized access attempt', user:'System'   },
-  { time:'10:20:10', type:'access',  device:'Door Lock',       action:'Unlocked',                    user:'admin'    },
-  { time:'09:55:00', type:'control', device:'Fan',             action:'Turned on (speed 60%)',        user:'admin'    },
-  { time:'09:30:00', type:'sensor',  device:'Smoke Sensor',    action:'Normal reading — 0 ppm',       user:'System'   },
-  { time:'08:00:00', type:'control', device:'Air Conditioner', action:'Turned on — 22°C',             user:'Schedule' },
-  { time:'07:00:00', type:'control', device:'Main Lights',     action:'Auto turn on (scheduled)',    user:'Schedule' },
+  { time:'10:42:15', type:'control', device:'Main Lights', action:'Turned on',               user:'admin'    },
+  { time:'10:38:02', type:'sensor',  device:'Motion Sensor', action:'Motion detected',       user:'System'   },
+  { time:'10:35:44', type:'alert',   device:'Main Door', action:'Unauthorized access attempt', user:'System' },
+  { time:'10:20:10', type:'access',  device:'Door Lock', action:'Unlocked',                  user:'admin'    },
+  { time:'09:55:00', type:'control', device:'Fan', action:'Turned on',                       user:'admin'    },
+  { time:'09:30:00', type:'sensor',  device:'Smoke Sensor', action:'Normal reading — 0 ppm', user:'System'  },
+  { time:'07:00:00', type:'control', device:'Main Lights', action:'Auto turn on (scheduled)', user:'Schedule' },
 ];
 
 // LOGIN
 function doLogin() {
-  if (document.getElementById('loginUser').value==='admin' && document.getElementById('loginPass').value==='1234') {
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+
+  if (pass === '1234') {
     const s = document.getElementById('loginScreen');
-    s.style.transition='opacity .3s'; s.style.opacity='0';
+    s.style.transition='opacity .3s';
+    s.style.opacity='0';
     setTimeout(()=>s.style.display='none', 300);
     render();
+    err.textContent = '';
   } else {
+    err.textContent = 'Wrong password';
     const p = document.getElementById('loginPass');
-    p.style.borderColor='var(--red)'; setTimeout(()=>p.style.borderColor='',1500);
+    p.style.borderColor='var(--red)';
+    setTimeout(()=>p.style.borderColor='',1500);
   }
 }
 function doLogout() {
-  const s=document.getElementById('loginScreen'); s.style.display='flex'; s.style.opacity='0';
-  requestAnimationFrame(()=>{ s.style.transition='opacity .3s'; s.style.opacity='1'; });
+  const s=document.getElementById('loginScreen');
+  s.style.display='flex';
+  s.style.opacity='0';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').textContent = '';
+  requestAnimationFrame(()=>{
+    s.style.transition='opacity .3s';
+    s.style.opacity='1';
+  });
 }
 
 // NAV
@@ -576,13 +577,25 @@ function goPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  else document.querySelectorAll('.nav-item').forEach(n=>{ if((n.getAttribute('onclick')||'').includes("'"+id+"'")) n.classList.add('active'); });
+  else document.querySelectorAll('.nav-item').forEach(n=>{ if((n.getAttribute('onclick')||'').includes("'" + id + "'")) n.classList.add('active'); });
   document.getElementById('pageTitle').textContent=titles[id]||id;
 }
 
 // RENDER
-function render(){ renderDevicesGrid();renderQuickDevices();renderOverviewSensors();renderAllSensors();renderAlerts();renderOverviewAlerts();renderLogs();renderSchedules();updateActiveCount(); }
-function updateActiveCount(){ document.getElementById('activeDevCount').textContent=devices.filter(d=>d.on).length; }
+function render(){
+  renderDevicesGrid();
+  renderQuickDevices();
+  renderOverviewSensors();
+  renderAllSensors();
+  renderAlerts();
+  renderOverviewAlerts();
+  renderLogs();
+  renderSchedules();
+  updateActiveCount();
+}
+function updateActiveCount(){
+  document.getElementById('activeDevCount').textContent=devices.filter(d=>d.on).length;
+}
 
 function renderDevicesGrid(){
   document.getElementById('devicesGrid').innerHTML=devices.map(d=>`
@@ -592,13 +605,8 @@ function renderDevicesGrid(){
         <div class="tog ${d.on?'on':''}" onclick="event.stopPropagation();toggleDev(${d.id})"><div class="tog-thumb"></div></div>
       </div>
       <div class="dev-name">${d.name}</div>
-      <div class="dev-status ${d.on?'on':''}">${d.on?'ON · '+d.status:'OFF'}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px">📍 ${d.pin}</div>
-      ${d.hasSlider&&d.on?`
-      <div class="dev-slider" onclick="event.stopPropagation()">
-        <div class="slider-row"><span>${d.sliderLabel}</span><span id="dsval-${d.id}">${d.sliderVal}${d.istemp?'°C':'%'}</span></div>
-        <input type="range" min="${d.istemp?16:0}" max="${d.istemp?30:100}" value="${d.sliderVal}" oninput="updateSlider(${d.id},this.value)">
-      </div>`:''}
+      <div class="dev-status ${d.on?'on':''}">${d.on ? d.status : 'OFF'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">📍 ${d.room}</div>
     </div>`).join('');
 }
 
@@ -607,7 +615,10 @@ function renderQuickDevices(){
   el.innerHTML=devices.slice(0,5).map(d=>`
     <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card2);border-radius:12px;border:1px solid var(--border)">
       <span style="font-size:18px">${d.emoji}</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:11px;color:${d.on?'var(--green)':'var(--muted)'}">${d.on?'ON':'OFF'}</div></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${d.name}</div>
+        <div style="font-size:11px;color:${d.on?'var(--green)':'var(--muted)'}">${d.on ? d.status : 'OFF'}</div>
+      </div>
       <div class="tog ${d.on?'on':''}" onclick="toggleDev(${d.id});renderQuickDevices()"><div class="tog-thumb"></div></div>
     </div>`).join('');
 }
@@ -617,7 +628,9 @@ function renderOverviewSensors(){
   el.innerHTML=sensors.slice(0,4).map(s=>`
     <div class="sensor-card">
       <div class="sensor-top"><span>${s.emoji}</span><span class="status-badge ${s.status}">Safe</span></div>
-      <div class="sensor-lbl">${s.name}</div><div class="sensor-val">${s.val}</div><div class="sensor-unit">${s.unit}</div>
+      <div class="sensor-lbl">${s.name}</div>
+      <div class="sensor-val">${s.val}</div>
+      <div class="sensor-unit">${s.unit}</div>
     </div>`).join('');
 }
 
@@ -626,7 +639,9 @@ function renderAllSensors(){
   el.innerHTML=sensors.map(s=>`
     <div class="sensor-card">
       <div class="sensor-top"><span style="font-size:26px">${s.emoji}</span><span class="status-badge ${s.status}">Safe</span></div>
-      <div class="sensor-lbl" style="margin-bottom:8px">${s.name}</div><div class="sensor-val">${s.val}</div><div class="sensor-unit">${s.unit}</div>
+      <div class="sensor-lbl" style="margin-bottom:8px">${s.name}</div>
+      <div class="sensor-val">${s.val}</div>
+      <div class="sensor-unit">${s.unit}</div>
     </div>`).join('');
 }
 
@@ -639,7 +654,9 @@ function renderAlerts(){
       ${!a.read?`<button class="mark-btn" onclick="markRead(${a.id})">Mark Read</button>`:''}
     </div>`).join('');
   const u=alerts.filter(a=>!a.read).length;
-  const b=document.getElementById('alertBadge'); b.textContent=u||''; b.style.display=u?'block':'none';
+  const b=document.getElementById('alertBadge');
+  b.textContent=u||'';
+  b.style.display=u?'block':'none';
 }
 
 function renderOverviewAlerts(){
@@ -657,7 +674,8 @@ function renderLogs(){
     <tr>
       <td style="color:var(--muted)">${l.time}</td>
       <td><span class="log-type ${l.type}">${l.type}</span></td>
-      <td>${l.device}</td><td>${l.action}</td>
+      <td>${l.device}</td>
+      <td>${l.action}</td>
       <td style="color:var(--muted)">${l.user}</td>
     </tr>`).join('');
 }
@@ -678,42 +696,86 @@ function renderSchedules(){
 
 // ACTIONS
 function toggleDev(id){
-  devices[id].on=!devices[id].on; renderDevicesGrid(); renderQuickDevices(); updateActiveCount();
-  logs.unshift({time:new Date().toLocaleTimeString(),type:'control',device:devices[id].name,action:devices[id].on?'Turned on':'Turned off',user:'admin'});
+  devices[id].on=!devices[id].on;
+
+  if (devices[id].name === 'Door Lock') {
+    devices[id].status = devices[id].on ? 'Locked' : 'Unlocked';
+  } else {
+    devices[id].status = devices[id].on ? 'ON' : 'OFF';
+  }
+
+  renderDevicesGrid();
+  renderQuickDevices();
+  updateActiveCount();
+
+  logs.unshift({
+    time:new Date().toLocaleTimeString(),
+    type:'control',
+    device:devices[id].name,
+    action:devices[id].on?'Turned on':'Turned off',
+    user:'admin'
+  });
   renderLogs();
 }
-function updateSlider(id,val){ devices[id].sliderVal=parseInt(val); const el=document.getElementById('dsval-'+id); if(el) el.textContent=val+(devices[id].istemp?'°C':'%'); }
-function allOff(){ devices.forEach(d=>d.on=false); renderDevicesGrid(); renderQuickDevices(); updateActiveCount(); }
+
+function allOff(){
+  devices.forEach(d=>{
+    d.on=false;
+    d.status='OFF';
+  });
+  renderDevicesGrid();
+  renderQuickDevices();
+  updateActiveCount();
+}
 function markRead(id){ alerts[id].read=true; renderAlerts(); renderOverviewAlerts(); }
 function markAllRead(){ alerts.forEach(a=>a.read=true); renderAlerts(); renderOverviewAlerts(); }
 function toggleSched(i){ schedules[i].on=!schedules[i].on; renderSchedules(); }
 function addSchedule(){
-  schedules.unshift({time:document.getElementById('sTime').value,device:document.getElementById('sDevice').value,action:document.getElementById('sAction').value,days:document.getElementById('sDays').value,on:true});
+  schedules.unshift({
+    time:document.getElementById('sTime').value,
+    device:document.getElementById('sDevice').value,
+    action:document.getElementById('sAction').value,
+    days:document.getElementById('sDays').value,
+    on:true
+  });
   renderSchedules();
 }
 
 let doorLocked=true;
 function openDoor(){
-  const btn=document.getElementById('doorBtn'); doorLocked=!doorLocked;
+  const btn=document.getElementById('doorBtn');
+  doorLocked=!doorLocked;
   if(doorLocked){
-    btn.textContent='🔓 Unlock Door'; btn.style.background='linear-gradient(135deg,var(--accent),var(--accent2))';
-    document.getElementById('doorStatusTxt').textContent='🔐 Locked — Secure'; document.getElementById('doorStatusTxt').style.color='var(--green)';
-    document.getElementById('doorBadge').textContent='Locked'; document.getElementById('doorBadge').className='status-badge ok';
+    btn.textContent='🔓 Unlock Door';
+    btn.style.background='linear-gradient(135deg,var(--accent),var(--accent2))';
+    document.getElementById('doorStatusTxt').textContent='🔐 Locked — Secure';
+    document.getElementById('doorStatusTxt').style.color='var(--green)';
+    document.getElementById('doorBadge').textContent='Locked';
+    document.getElementById('doorBadge').className='status-badge ok';
   } else {
-    btn.textContent='🔒 Lock Door'; btn.style.background='linear-gradient(135deg,var(--orange),var(--red))';
-    document.getElementById('doorStatusTxt').textContent='🔓 Unlocked'; document.getElementById('doorStatusTxt').style.color='var(--orange)';
-    document.getElementById('doorBadge').textContent='Unlocked'; document.getElementById('doorBadge').className='status-badge warn';
+    btn.textContent='🔒 Lock Door';
+    btn.style.background='linear-gradient(135deg,var(--orange),var(--red))';
+    document.getElementById('doorStatusTxt').textContent='🔓 Unlocked';
+    document.getElementById('doorStatusTxt').style.color='var(--orange)';
+    document.getElementById('doorBadge').textContent='Unlocked';
+    document.getElementById('doorBadge').className='status-badge warn';
   }
-  logs.unshift({time:new Date().toLocaleTimeString(),type:'access',device:'Door Lock',action:doorLocked?'Locked':'Unlocked',user:'admin'}); renderLogs();
+  logs.unshift({time:new Date().toLocaleTimeString(),type:'access',device:'Door Lock',action:doorLocked?'Locked':'Unlocked',user:'admin'});
+  renderLogs();
 }
 
 function takeSS(e){
-  const btn=e.target; btn.textContent='⏳ Saving...';
-  setTimeout(()=>{ btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='📸 Snapshot',1500); },800);
-  logs.unshift({time:new Date().toLocaleTimeString(),type:'access',device:'ESP32-CAM',action:'Snapshot captured',user:'admin'}); renderLogs();
+  const btn=e.target;
+  btn.textContent='⏳ Saving...';
+  setTimeout(()=>{
+    btn.textContent='✅ Saved!';
+    setTimeout(()=>btn.textContent='📸 Snapshot',1500);
+  },800);
+  logs.unshift({time:new Date().toLocaleTimeString(),type:'access',device:'ESP32-CAM',action:'Snapshot captured',user:'admin'});
+  renderLogs();
 }
 
-// Live sensor simulation (MQTT updates)
+// Live sensor simulation
 setInterval(()=>{
   if(document.getElementById('page-monitoring').classList.contains('active')) renderAllSensors();
   if(document.getElementById('page-overview').classList.contains('active')) renderOverviewSensors();
